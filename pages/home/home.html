@@ -1,5 +1,13 @@
 <div ng-controller='HomeCtrl'>
     <h1>HOME</h1>
-	<!-- TODO: place directive call here -->
-    dbname: {{dbName}}
+
+    <!-- TODO: place directive call here -->
+    <p>
+        dbname: {{dbName}}
+    </p>
+    
+    <ul>
+        <li ng-repeat="result in results" ng-class="{'red': result.error}">{{result.msg}}</li>
+    </ul>
+    
 </div>

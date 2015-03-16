@@ -33,6 +33,6 @@ config(['$routeProvider', '$locationProvider', '$compileProvider', '$sqliteProvi
             
     // our own stuff
             
-    $sqliteProvider.setName('differentName');
+    $sqliteProvider.config('differentName');
 	
 }]);
