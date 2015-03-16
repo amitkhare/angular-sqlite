@@ -1,11 +1,17 @@
 {
-	"name": "angularSqlite-demo",
-	"version": "0.0.0",
+	"name": "angularSqlite",
+	"version": "0.0.1",
 	"authors": [
 		"Joel Chu <joelchu@foxmail.com>"
 	],
-	"description": "Demo",
+    "repository": "git@github.com:joelchu/angular-sqlite.git",
+    "homepage": "http://newbranch.cn/goodies/angular-sqlite",
+	"description": "Angular plus sqlite for mobile, desktop or whatever",
 	"keywords": [
+        "Angular",
+        "AngularJS",
+        "javascript",
+        "sqlite"
 	],
 	"license": "MIT",
 	"ignore": [
@@ -16,10 +22,9 @@
 		"tests"
 	],
 	"dependencies": {
-		"angular":"~1.2.0",
-		"angular-sanitize":"~1.2.0",
-		"angular-route":"~1.2.0",
-		"angular-touch":"~1.2.0"
+		"angular":"~1.3.0",
+		"angular-sanitize":"~1.3.0",
+		"angular-route":"~1.3.0"
 	},
 	"devDependencies": {
 	}
