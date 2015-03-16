@@ -203,15 +203,13 @@ Might as well create an angular module and share it. Hope it works for you :)
             {
                 case 'INSERT':
                     return results.insertId;
-                    break;
                 case 'UPDATE':
                 case 'DELETE':
                     return results.rowsAffected;    
-                    break;
                 default:
                     //console.log(results);
                     var len = results.rows.length, i , data = [];
-                    for (var i=0; i<len; ++i) {
+                    for (i=0; i<len; ++i) {
                         //console.log(results.rows.item(i));
                         data.push(results.rows.item(i));
                     }
