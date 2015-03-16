@@ -1,6 +1,6 @@
 {
-	"name": "angularSqlite",
-	"version": "1.0.0",
+	"name": "angular-sqlite",
+	"version": "0.0.1",
 	"authors": [
 		"Joel Chu <joelchu@foxmail.com>"
 	],
@@ -20,7 +20,7 @@
 		"tests"
 	],
 	"dependencies": {
-		"angular":"~1.2.0"
+		"angular":"~1.3.0"
 	},
 	"devDependencies": {
 	}

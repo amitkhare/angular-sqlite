@@ -1,9 +1,10 @@
 # Angular Sqlite service 
 
-[TODO - brief summary]
+AngularJS service to access the HTML5 sqlite API.
 
 ## Demo
-http://joelchu.github.io/angularSqlite/
+
+http://joelchu.github.io/angular-sqlite/
 
 ## Dependencies
 - required:
@@ -16,17 +17,16 @@ See `bower.json` and `index.html` in the `gh-pages` branch for a full list / mor
 ## Install
 1. download the files
 	1. Bower
-		1. add `"angularSqlite": "latest"` to your `bower.json` file then run `bower install` OR run `bower install angularSqlite`
+		1. add `"angular-sqlite": "latest"` to your `bower.json` file then run `bower install` OR run `bower install angular-sqlite`
 2. include the files in your app
-	1. `Sqlite.min.js`
-3. include the module in angular (i.e. in `app.js`) - `joelchu.angularSqlite`
+	1. `angular-sqlite.min.js`
+3. include the module in angular (i.e. in `app.js`) - `nbSqlite`
 
 See the `gh-pages` branch, files `bower.json` and `index.html` for a full example.
 
-
 ## Documentation
 See the `Sqlite.js` file top comments for usage examples and documentation
-https://github.com/joelchu/angularSqlite/blob/master/Sqlite.js
+https://github.com/joelchu/angular-sqlite/blob/master/angular-sqlite.js
 
 
 ## Development
