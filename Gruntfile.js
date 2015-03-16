@@ -81,8 +81,8 @@ module.exports = function(grunt) {
 				},
 				build: {
 					files:  {},
-					src:    'Sqlite.js',
-					dest:   'Sqlite.min.js'
+					src:    'angular-sqlite.js',
+					dest:   'angular-sqlite.min.js'
 				}
 			}/*,
 			karma: {
