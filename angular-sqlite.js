@@ -225,9 +225,9 @@ Might as well create an angular module and share it. Hope it works for you :)
          */
         this.createTable = function(name , params, overwrite)
         {
-            overwrite = overwrite || true;
+            overwrite = overwrite || false;
             var sql = "CREATE TABLE " , fields = [];
-            if (overwrite) {
+            if (!overwrite) {
                 sql += " IF NOT EXISTS ";
             }
             sql += name + " (";
@@ -290,6 +290,7 @@ Might as well create an angular module and share it. Hope it works for you :)
                 sql = "INSERT INTO " + tableName + "(",
                 fields = [], 
                 data = [];
+            
             angular.forEach(params, function(value,field)
             {
                 fields.push(field);
@@ -409,6 +410,7 @@ Might as well create an angular module and share it. Hope it works for you :)
          */
         this.parse = parse;
         this.query = query;
+        this.transaction = transaction;
         
         // execute the connect 
         connect();

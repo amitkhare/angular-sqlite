@@ -2,32 +2,94 @@
 
 AngularJS service to access the HTML5 sqlite API.
 
-## Demo
-
-http://joelchu.github.io/angular-sqlite/
-
 ## Dependencies
 - required:
-	[TODO]
-- optional
-	[TODO]
+	angularjs (1.3)
 
-See `bower.json` and `index.html` in the `gh-pages` branch for a full list / more details
 
 ## Install
+
 1. download the files
-	1. Bower
-		1. add `"angular-sqlite": "latest"` to your `bower.json` file then run `bower install` OR run `bower install angular-sqlite`
+
+    1. Bower
+        This module is not register with bower but you can install it directly from github 
+		
+            bower install https://github.com/joelchu/angular-sqlite.git 
+
 2. include the files in your app
-	1. `angular-sqlite.min.js`
+	
+    1. `angular-sqlite.min.js`
+    
 3. include the module in angular (i.e. in `app.js`) - `nbSqlite`
 
-See the `gh-pages` branch, files `bower.json` and `index.html` for a full example.
+    angular.module('yourApp' , ['nbSqlite']);
 
 ## Documentation
-See the `Sqlite.js` file top comments for usage examples and documentation
-https://github.com/joelchu/angular-sqlite/blob/master/angular-sqlite.js
 
+1. Include the module as show in `Install no.3` 
+
+2. You can configurate the module before use during the config phrase
+
+    angular.module('yourApp' , ['nbSqlite'])
+           .config(['nbSqliteProvider' , function(nbSqlite)
+           {
+                
+                nbSqliteProvider.config(name , size , desc , debugMode);
+           }]);
+
+    1. name - the database name 
+    2. size - the size of the database by default its 5mb (5*1024*1024)
+    3. desc - description of the database, really don't need to set it.
+    4. debugMode - boolean, set to true then you can see console.log output 
+    5. note, I have deliberately obmit the version parameter because it could potentially cause problem. 
+    
+3. Then in your controller, you will get a `$sqlite` service
+
+    angular.module('yourApp').controller(['$scope','$sqlite' , function($scope, $sqlite)
+    {
+        // implment whatever you need. 
+    });
+
+4. Almost all the public API return a promise from the angular stock version $q. The only one which is the `parse` method.
+
+5. The CRUD methods
+
+    1. $sqlite.create(tableName , params);
+        This method expects the tableName, and hash of {fieldName: fieldValue} etc.
+        
+    2. $sqlite.find(tableName, params);
+        This method expects the tableName, and a collection of search parameters
+        1. fields - an array of field names, by default it will be `*`
+        2. where - (string) sql where statement (without the keyword WHERE)
+        3. order - (string) sql order by statement (without the keyword ORDER BY)
+        4. limit - (string) sql limit statement (without the keyword LIMIT) mostly you could just put {limit:1} 
+    
+    3. $sqlite.save(tableName, params , where) 
+        This method expects table name, hash of {fieldName: fieldValue} and a fragment of sql where statement 
+        
+    4. $sqlite.del(tableName, where)
+        This method expects table name, and a fragment of where cause 
+        becareful - if you dont put the where, it will delete everything from the table 
+        
+6. Some extra util methods 
+
+    1. $sqlite.createTable(tableName, params , overwrite)
+        Quick and easy method to generate table, pass a table name, hash of {fieldName, fieldType}
+        by default the overwrite is false, pass true if you want to wipe the existing table
+        
+    2. $sqlite.listTables() 
+        quick method to query the sqlite_master table and list all the type="table"
+        
+7. More methods, sometime you might want to write big query, or need to access some lower levels.
+
+    1. $sqlite.query(sql ,data)
+        sql statement, if you use placeholder `?` then pass array of data in the second parameters
+        
+    2. $sqlite.transaction(sqls, datas)
+        This will execute an array of sqls, and the array of data array (in the same order)
+        note that we are using the stock version of angular $q. so the return promise ($q.all) can only tell you 
+        if they are all OK, or failed. One more thing is, the error handler is in the transaction level. 
+        What that mean is , if one of the query failed, it will rollback. 
 
 ## Development
 
