@@ -30,12 +30,13 @@ AngularJS service to access the HTML5 sqlite API.
 
 2. You can configurate the module before use during the config phrase
 
-    `angular.module('yourApp' , ['nbSqlite'])
+
+    angular.module('yourApp' , ['nbSqlite'])
     .config(['nbSqliteProvider' , function(nbSqlite)
-    {
-                
+    {            
         nbSqliteProvider.config(name , size , desc , debugMode);
-    }]);`
+    }]);
+
 
     1. name - the database name 
     2. size - the size of the database by default its 5mb (5*1024*1024)
