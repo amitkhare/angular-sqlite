@@ -46,10 +46,17 @@ AngularJS service to access the HTML5 sqlite API.
     
 3. Then in your controller, you will get a `$sqlite` service
 
-    `angular.module('yourApp').controller(['$scope','$sqlite' , function($scope, $sqlite)
-    {
-        // implment whatever you need. 
-    });`
+        angular.module('yourApp').controller(['$scope','$sqlite' , function($scope, $sqlite)
+        {
+            // implment whatever you need.
+            // for example
+            $sqlite.listTables().then(function(tables)
+            {
+                angular.forEach(tables, function(table) {
+                    // key value pair of table info 
+                });
+            });
+        });
 
 4. Almost all the public API return a promise from the angular stock version $q. The only one which is the `parse` method.
 
