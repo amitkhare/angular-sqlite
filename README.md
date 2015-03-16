@@ -58,7 +58,7 @@ AngularJS service to access the HTML5 sqlite API.
             });
         });
 
-4. Almost all the public API return a promise from the angular stock version $q. The only one which is the `parse` method.
+4. Almost all the public API return a promise from the angular stock version `$q.promise`. The only one which is the `$sqlite.parse` method.
 
 5. The CRUD methods
 
@@ -94,7 +94,14 @@ AngularJS service to access the HTML5 sqlite API.
     2. `$sqlite.listTables().then(callback)`
         quick method to query the sqlite_master table and list all the type="table"
         
-        
+    
+    3. `$sqlite.parse(results, type)` 
+        This is the only method that is not return a `$q.promise` it just a quick way to get the property 
+        from the sqlite database result object.
+        If you dont' pass the type, then it will try to get the rows into an array and return it. 
+        pass it as `INSERT` then you will get the `insertId`
+        pass `UPDATE` or `DELETE` then you will get the `rowsAffected`
+    
 7. More methods, sometime you might want to write big query, or need to access some lower levels.
 
     1. `$sqlite.query(sql ,data).then(callback)`
