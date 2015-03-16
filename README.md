@@ -31,11 +31,11 @@ AngularJS service to access the HTML5 sqlite API.
 2. You can configurate the module before use during the config phrase
 
 
-    angular.module('yourApp' , ['nbSqlite'])
-    .config(['nbSqliteProvider' , function(nbSqlite)
-    {            
-        nbSqliteProvider.config(name , size , desc , debugMode);
-    }]);
+        angular.module('yourApp' , ['nbSqlite'])
+               .config(['nbSqliteProvider' , function(nbSqlite)
+               {            
+                    nbSqliteProvider.config(name , size , desc , debugMode);
+               }]);
 
 
     1. name - the database name 
