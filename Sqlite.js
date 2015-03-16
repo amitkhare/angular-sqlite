@@ -1,27 +1,49 @@
+/* global window , Date */
 /**
 @fileOverview
 
 @toc
 
 */
-(function() 
-{
-    'use strict';
 
-    angular.module('angularSqlite', [])
-    .factory('nbSqlite', [ function () 
+(function(window, angular, undefined) { 'use strict';
+
+    var AngularSqliteCls = function($q , name)
     {
+        var dbName = name;
+        
+        this.getName = function()
+        {
+            return dbName;
+        };
+        
+        this.connect = function()
+        {
+            
+        };
+        
+        this.query = function(sql)
+        {
+            
+        }
+    };
+                                       
+                                    
+    /**
+     * AngularJS module 
+     */
+    var app = angular.module('nbSqlite', []);
+    app.provider('$sqlite', function()
+    {
+        var dbName = 'defaultDBName';
 
-        //public methods & properties
-        var self ={
+        this.setName = function (name) {
+            dbName = name;
         };
 
-        //private methods and properties - should ONLY expose methods and properties publicly (via the 'return' object) that are supposed to be used; everything else (helper methods that aren't supposed to be called externally) should be private.
-
-        return self;
-    }]);
+        this.$get = ['$q' , function($q) {
+            return new AngularSqliteCls($q , dbName);
+        }];
+    });
     
-    
-    
-    
-}());
+})(window, window.angular);

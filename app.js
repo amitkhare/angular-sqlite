@@ -6,10 +6,12 @@
 'use strict';
 
 angular.module('myApp', [
-'ngRoute', 'ngSanitize', 'ngTouch',		//additional angular modules
-'joelchu.angularSqlite'
+'ngRoute', 
+'ngSanitize',	//additional angular modules
+'nbSqlite'
 ]).
-config(['$routeProvider', '$locationProvider', '$compileProvider', function($routeProvider, $locationProvider, $compileProvider) {
+config(['$routeProvider', '$locationProvider', '$compileProvider', '$sqliteProvider',
+        function($routeProvider, $locationProvider, $compileProvider , $sqliteProvider) {
 	/**
 	setup - whitelist, appPath, html5Mode
 	@toc 1.
@@ -28,5 +30,9 @@ config(['$routeProvider', '$locationProvider', '$compileProvider', function($rou
 	$routeProvider.when(appPathRoute+'home', {templateUrl: pagesPath+'home/home.html'});
 
 	$routeProvider.otherwise({redirectTo: appPathRoute+'home'});
+            
+    // our own stuff
+            
+    $sqliteProvider.setName('differentName');
 	
 }]);
