@@ -2,56 +2,56 @@
 /**
 @fileOverview
 
-Found myself keep doing the same thing over and over again. 
-Might as well create an angular module and share it. Hope it works for you :) 
+Found myself keep doing the same thing over and over again.
+Might as well create an angular module and share it. Hope it works for you :)
 
 @toc
 
 */
 
 (function(window, angular, undefined) { 'use strict';
-    
+
     /**
      * This is an HTML5 implementation for the sqlite for use in mobile / desktop
-     * But in our Mobile version, we could use another one call CordovaSqlite library. 
-     * This is why we must use the provider, so we could do a configuration before the init. 
-     * The HTML5 sqlite is really simple, only three things to know. 
+     * But in our Mobile version, we could use another one call CordovaSqlite library.
+     * This is why we must use the provider, so we could do a configuration before the init.
+     * The HTML5 sqlite is really simple, only three things to know.
      * db = openDatabase([[params]]);
      * db.execute(function(tx)
      * {
-     *     tx.executeSql(sql); 
+     *     tx.executeSql(sql);
      * });
      * @param   {[[Type]]} $q   [[Description]]
      * @param   {[[Type]]} name [[Description]]
      * @param   {[[Type]]} size [[Description]]
      * @param   {[[Type]]} ver  [[Description]]
      * @param   {[[Type]]} desc
-     * @param   {boolean}  debug - turn on debug or not 
+     * @param   {boolean}  debug - turn on debug or not
      * @returns {[[Type]]} [[Description]]
      */
-    var HTML5SqliteCls = function($q , name , size , ver , desc , debug)
+    var SqliteCls = function($q , name , size , ver , desc , debug)
     {
         var dbName = name;
         var dbSize = size;
         var dbVer  = ver;
         var dbDesc = desc;
-        var debugMode = debug; // useful for seeing what is happening inside 
+        var debugMode = debug; // useful for seeing what is happening inside
         var db; // db object holder
         var self   = this;
-        
+
         /////////////////
         //// Private ////
         /////////////////
-                
+
         /**
-         * connect to the database (or create a new one) 
-         * 17 MAR 2015 - change it back to promise style for the phonegap version 
+         * connect to the database (or create a new one)
+         * 17 MAR 2015 - change it back to promise style for the phonegap version
          * @returns {object} database instance
          */
         var connect = function()
         {
             var defer = $q.defer();
-            
+
             if (db===undefined || db===null) {
                 if (dbVer==='phonegap') {
                     document.addEventListener("deviceready", function()
@@ -59,11 +59,11 @@ Might as well create an angular module and share it. Hope it works for you :)
                         /**
                          * note here about the location
                          * For iOS
-                         * 
+                         *
                          * 0 (default): Documents - will be visible to iTunes and backed up by iCloud
                          * 1: Library - backed up by iCloud, NOT visible to iTunes
                          * 2: Library/LocalDatabase - NOT visible to iTunes and NOT backed up by iCloud
-                         * set to 1 by default for the time being, might change in future release 
+                         * set to 1 by default for the time being, might change in future release
                          */
                         var db = window.sqlitePlugin.openDatabase({name: dbName + ".db" , location: 1});
                     },false);
@@ -71,14 +71,14 @@ Might as well create an angular module and share it. Hope it works for you :)
                 else {
                     db = window.openDatabase(dbName, dbVer, dbDesc, dbSize);
                 }
-            } 
+            }
             else {
                 defer.resolve(db);
             }
-            
+
             return defer.promise;
         };
-        
+
 
         /**
          * wrap the reject call and turn on/off the debug
@@ -93,9 +93,9 @@ Might as well create an angular module and share it. Hope it works for you :)
                 console.log('error:' , error);
             }
         };
-        
+
         /**
-         * wrap the resolve call and turn on/off the debug 
+         * wrap the resolve call and turn on/off the debug
          * @param {[[Type]]} results [[Description]]
          * @param {[[Type]]} defer   [[Description]]
          */
@@ -106,7 +106,7 @@ Might as well create an angular module and share it. Hope it works for you :)
                 console.log('success:' , results);
             }
         };
-        
+
         /**
          * quick way to generate a bunch of ? as placeholder
          * @param   {integer} i [[Description]]
@@ -120,19 +120,19 @@ Might as well create an angular module and share it. Hope it works for you :)
             }
             return p.join(',');
         };
-        
-        
+
+
         /**
-         * execute a script and return a promise for $q.all to work 
+         * execute a script and return a promise for $q.all to work
          * @param {object} tx   db transaction object
          * @param {string} sql  sql statement
          * @param {array} data (optional) array of data
-         * @returns {object} promise                    
+         * @returns {object} promise
          */
         var execute = function(tx , sql , data)
         {
             data = data || [];
-            var defer = $q.defer();    
+            var defer = $q.defer();
             tx.executeSql(sql , data , function(tx , results)
             {
                 successHandler(results , defer);
@@ -144,12 +144,12 @@ Might as well create an angular module and share it. Hope it works for you :)
         };
 
         /**
-         * Execute a single sql 
+         * Execute a single sql
          * @param {string} sql - sql statement
          * @return {object} database object
          */
         var query = function(sql , data)
-        {  
+        {
             data = data || [];
             var defer = $q.defer();
             connect().then(function(db)
@@ -163,17 +163,17 @@ Might as well create an angular module and share it. Hope it works for you :)
                     {
                         errorHandler(error , defer);
                     });
-                }); 
+                });
             });
             /**
              * if we add a second function to the transaction to catch the error function(err) then it will roll back
-             * we do this when we use `set` call 
+             * we do this when we use `set` call
              */
             return defer.promise;
         };
-        
+
         /**
-         * this will execute a sequence of query with rollback 
+         * this will execute a sequence of query with rollback
          * @param {array} sqls  array of sql statements
          * @param {array} datas array of data [array]
          */
@@ -189,8 +189,8 @@ Might as well create an angular module and share it. Hope it works for you :)
                         Ds.push(execute(tx , sqls[i] , datas[i]));
                     }
                     /**
-                     * we are using the stock version of the Q. 
-                     * so there is no look inside when we use $q.all 
+                     * we are using the stock version of the Q.
+                     * so there is no look inside when we use $q.all
                      * therefore this can only tell if all success of failed
                      */
                     $q.all(Ds).then(function()
@@ -204,17 +204,17 @@ Might as well create an angular module and share it. Hope it works for you :)
             });
             return defer.promise;
         };
-        
+
         //////////////
         /// Public ///
         //////////////
-        
+
         /***********
-         ** UTILS ** 
+         ** UTILS **
          ***********/
 
         /**
-         * parse the results object 
+         * parse the results object
          * this is what the results object looks like
          * {insertId: 0
          *  rows: SQLResultSetRowListlength: 0
@@ -234,7 +234,7 @@ Might as well create an angular module and share it. Hope it works for you :)
                     return results.insertId;
                 case 'UPDATE':
                 case 'DELETE':
-                    return results.rowsAffected;    
+                    return results.rowsAffected;
                 default:
                     //console.log(results);
                     var len = results.rows.length, i , data = [];
@@ -245,12 +245,12 @@ Might as well create an angular module and share it. Hope it works for you :)
                     return data;
             }
         };
-        
+
         /**
-         * convenience way to create a new table  
-         * @param {string} name  tableName 
+         * convenience way to create a new table
+         * @param {string} name  tableName
          * @param {hash} params {fieldName: fieldType}
-         * @param {boolean} exists (add IF NOT EXISTS) default true 
+         * @param {boolean} exists (add IF NOT EXISTS) default true
          */
         this.createTable = function(name , params, overwrite)
         {
@@ -267,13 +267,13 @@ Might as well create an angular module and share it. Hope it works for you :)
             sql += fields.join(',') + ")";
             return query(sql);
         };
-        
+
         /**
-         * sometime we want to execute a bunch of statements one after the 
-         * other inside on single transaction. So this method only return 
+         * sometime we want to execute a bunch of statements one after the
+         * other inside on single transaction. So this method only return
          * the tx object and let you implment your own logic inside
          * @param {function} rollback - if you provide this then when it fail, the db will get rollback
-         * @returns {object} promise 
+         * @returns {object} promise
          */
         this.getTransaction = function(rollback)
         {
@@ -287,32 +287,36 @@ Might as well create an angular module and share it. Hope it works for you :)
             });
             return defer.promise;
         };
-        
+
         /**
-         * quick access to the tables, and format the data nicely  
-         * @returns {object} promise 
+         * quick access to the tables, and format the data nicely
+         * @returns {object} promise
          */
         this.listTables = function()
         {
             var defer = $q.defer();
             var sql = "SELECT * FROM sqlite_master WHERE type=?";
-            
+
             query(sql , ['table']).then(function(results)
             {
-                defer.resolve(parse(results));
+                // filter out the built-in tables like __WebKit__ etc
+                defer.resolve(parse(results).filter(function(table)
+                {
+                    return (table.name.substr(0,2)==='__') ? false : true;
+                }));
             })['catch'](function(error) {
                 defer.reject(error);
-            }); 
-            
+            });
+
             return defer.promise;
         };
-        
+
         /***********
-         ** CRUD  **   
+         ** CRUD  **
          ***********/
-        
+
         /**
-         * INSERT 
+         * INSERT
          * @param {string} tableName
          * @param {hash} fields:value
          */
@@ -320,27 +324,27 @@ Might as well create an angular module and share it. Hope it works for you :)
         {
             var defer = $q.defer(),
                 sql = "INSERT INTO " + tableName + "(",
-                fields = [], 
+                fields = [],
                 data = [];
             angular.forEach(params, function(value,field)
             {
                 fields.push(field);
                 data.push(value);
             });
-            
+
             sql += fields.join(',') + ") VALUES (" + placeholder(data.length) + ")";
-            
+
             query(sql , data).then(function(results)
             {
-                defer.resolve(parse(results , 'INSERT'));    
+                defer.resolve(parse(results , 'INSERT'));
             })['catch'](function(error)
             {
                 defer.resolve(error);
             });
-            
+
             return defer.promise;
         };
-        
+
         /**
          * READ - this will be very different from the other API
          * @param {string} tableName
@@ -358,19 +362,19 @@ Might as well create an angular module and share it. Hope it works for you :)
             else {
                 sql += " * ";
             }
-            
+
             sql += " FROM " + tableName;
-            
+
             if (params.where) { // string
                 sql += " WHERE " + params.where;
             }
             if (params.order) { // string
                 sql += " ORDER BY " + params.order;
             }
-            if (params.limit) { // string 
+            if (params.limit) { // string
                 sql += " LIMIT " + params.limit;
             }
-            
+
             query(sql , data).then(function(result)
             {
                 defer.resolve(parse(result));
@@ -378,10 +382,10 @@ Might as well create an angular module and share it. Hope it works for you :)
             {
                 defer.reject(error);
             });
-            
+
             return defer.promise;
         };
-        
+
         /**
          * UPDATE
          * @param {string} tableName
@@ -401,7 +405,7 @@ Might as well create an angular module and share it. Hope it works for you :)
             });
             sql += fields.join(',');
             if (where) {
-                sql += " WHERE " + where;    
+                sql += " WHERE " + where;
             }
             query(sql , data).then(function(result)
             {
@@ -410,12 +414,12 @@ Might as well create an angular module and share it. Hope it works for you :)
             {
                 defer.reject(error);
             });
-        
+
             return defer.promise;
         };
-        
+
         /**
-         * DELETE 
+         * DELETE
          * @param {string} tableName
          * @param {string} where sql statement fragment
          */
@@ -424,7 +428,7 @@ Might as well create an angular module and share it. Hope it works for you :)
             var defer = $q.defer(),
                 sql = "DELETE FROM " + tableName;
             if (where) {
-                sql += " WHERE " + where;   
+                sql += " WHERE " + where;
             }
             query(sql).then(function(result)
             {
@@ -435,22 +439,22 @@ Might as well create an angular module and share it. Hope it works for you :)
             });
             return defer.promise;
         };
-        
+
         /**
-         * export them back 
+         * export them back
          */
         this.parse = parse;
         this.query = query;
         this.transaction = transaction;
         this.execute = execute;
-        
+
         // execute the connect to prepopulate the db object
         connect();
     };
-                                       
-                                    
+
+
     /**
-     * AngularJS module 
+     * AngularJS module
      */
     var app = angular.module('nbSqlite', []);
     app.provider('$sqlite', function()
@@ -461,18 +465,18 @@ Might as well create an angular module and share it. Hope it works for you :)
         var dbVer  = '1.0';
         var dbDesc = 'Angular Sqlite Database';
         var debug  = false;
-        
+
         /**
-         * configurate some parameters for database, note, we don't want you to change the version number. 
-         * Its better to leave it out because some browser support it and other don't 
-         * 17 MAR 2015 - add version and change the order of the parameters 
+         * configurate some parameters for database, note, we don't want you to change the version number.
+         * Its better to leave it out because some browser support it and other don't
+         * 17 MAR 2015 - add version and change the order of the parameters
          * @param {string} name [name of your database]
-         * @param {boolean} debugMode [set debug mode on off]     
+         * @param {boolean} debugMode [set debug mode on off]
          * @param {string} ver [version of your database for swtich different environment]
          * @param {number} size [size of your database]
          * @param {string} desc [text description of your database]
          */
-        this.config = function (name  , debugMode , ver , size , desc) 
+        this.config = function (name  , debugMode , ver , size , desc)
         {
             dbName = name || dbName;
             debug  = debugMode || debug;
@@ -485,13 +489,13 @@ Might as well create an angular module and share it. Hope it works for you :)
                 dbVer = ver;
             }
         };
-        
+
         /**
-         * init 
+         * init
          */
         this.$get = ['$q' , function($q) {
-            return new HTML5SqliteCls($q , dbName , dbSize , dbVer , dbDesc , debug);
+            return new SqliteCls($q , dbName , dbSize , dbVer , dbDesc , debug);
         }];
     });
-    
+
 })(window, window.angular);
