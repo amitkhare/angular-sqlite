@@ -54,7 +54,7 @@ Might as well create an angular module and share it. Hope it works for you :)
             
             if (db===undefined || db===null) {
                 if (dbVer==='phonegap') {
-                    document.addEventListener("deviceready", (function()
+                    document.addEventListener("deviceready", function()
                     {
                         /**
                          * note here about the location
