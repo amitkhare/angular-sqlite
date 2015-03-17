@@ -7,6 +7,10 @@ Might as well create an angular module and share it. Hope it works for you :)
 
 @toc
 
+1. get some better parsing in the WHERE / ORDER / LIMIT
+
+2. add GROUP BY ? or sub query and multiple queries processing
+
 */
 
 (function(window, angular, undefined) { 'use strict';
@@ -21,13 +25,13 @@ Might as well create an angular module and share it. Hope it works for you :)
      * {
      *     tx.executeSql(sql);
      * });
-     * @param   {[[Type]]} $q   [[Description]]
-     * @param   {[[Type]]} name [[Description]]
-     * @param   {[[Type]]} size [[Description]]
-     * @param   {[[Type]]} ver  [[Description]]
-     * @param   {[[Type]]} desc
-     * @param   {boolean}  debug - turn on debug or not
-     * @returns {[[Type]]} [[Description]]
+     * @param   {object} $q   angular.$q
+     * @param   {string} name - name of the database
+     * @param   {integer} size - size of the database - ignore in phonegap
+     * @param   {string} ver  - currently support '1.0' or 'phonegap' to switch between library
+     * @param   {string} desc - description of the database - ignore in phonegap
+     * @param   {boolean} debug - turn on debug or not
+     * @returns nil
      */
     var SqliteCls = function($q , name , size , ver , desc , debug)
     {
