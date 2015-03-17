@@ -1,6 +1,6 @@
 # Angular Sqlite service 
 
-AngularJS service to access the HTML5 sqlite API.
+AngularJS service to access the HTML5 sqlite API or Phonegap sqlite plugin.
 
 ## Dependencies
 - required:
