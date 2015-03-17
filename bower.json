@@ -1,11 +1,11 @@
 {
 	"name": "angular-sqlite",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"authors": [
 		"Joel Chu <joelchu@foxmail.com>"
 	],
     "repository": "git@github.com:joelchu/angular-sqlite.git",
-    "homepage": "http://newbranch.cn/goodies/angular-sqlite",
+    "homepage": "https://github.com/joelchu/angular-sqlite/blob/master/README.md",
 	"description": "Angular plus sqlite for mobile, desktop or whatever",
 	"keywords": [
         "Angular",
