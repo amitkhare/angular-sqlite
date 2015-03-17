@@ -1,6 +1,6 @@
 {
 	"name": "angular-sqlite",
-	"version": "0.1.0",
+	"version": "0.2.0",
     "main": "angular-sqlite.min.js",
 	"authors": [
 		"Joel Chu <joelchu@foxmail.com>"
