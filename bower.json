@@ -1,17 +1,17 @@
 {
 	"name": "angular-sqlite",
-	"version": "0.2.0",
-    "main": "angular-sqlite.min.js",
+	"version": "0.2.1",
 	"authors": [
 		"Joel Chu <joelchu@foxmail.com>"
 	],
-	"description": "Angular Sqlite service ",
+    "repository": "git@github.com:joelchu/angular-sqlite.git",
     "homepage": "https://github.com/joelchu/angular-sqlite/blob/master/README.md",
+	"description": "Angular plus sqlite for mobile, desktop or whatever",
 	"keywords": [
-		"angular",
-		"angularjs",
-		"sqlite",
-		"mobile"
+        "Angular",
+        "AngularJS",
+        "javascript",
+        "sqlite"
 	],
 	"license": "MIT",
 	"ignore": [
@@ -22,7 +22,9 @@
 		"tests"
 	],
 	"dependencies": {
-		"angular":"~1.3.0"
+		"angular":"~1.3.0",
+		"angular-sanitize":"~1.3.0",
+		"angular-route":"~1.3.0"
 	},
 	"devDependencies": {
 	}
