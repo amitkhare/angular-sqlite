@@ -34,15 +34,17 @@ AngularJS service to access the HTML5 sqlite API.
         angular.module('yourApp' , ['nbSqlite'])
                .config(['nbSqliteProvider' , function(nbSqlite)
                {            
-                    nbSqliteProvider.config(name , size , desc , debugMode);
+                    
+                    nbSqliteProvider.config(name , debugMode , ver , size , desc);
                }]);
 
 
     1. name - the database name 
-    2. size - the size of the database by default its 5mb (5*1024*1024)
-    3. desc - description of the database, really don't need to set it.
-    4. debugMode - boolean, set to true then you can see console.log output 
-    5. note, I have deliberately obmit the version parameter because it could potentially cause problem. 
+    2. debugMode - boolean, set to true then you can see console.log output
+    3. ver - this is important to know, if you supply "1.0" it will use native HTML5 sqlite feature. If you are in phonegap and use this plugin (https://github.com/brodysoft/Cordova-SQLitePlugin) it will switch to support it. Just pass "phonegap" as version
+    4. size - the size of the database by default its 5mb (5*1024*1024) - this value will be ignore if you are using ver:phonegap
+    5. desc - description of the database, really don't need to set it. Keep it here just to be nice. Might remove in future reelase.
+     
     
 3. Then in your controller, you will get a `$sqlite` service
 

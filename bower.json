@@ -1,11 +1,12 @@
 {
 	"name": "angular-sqlite",
-	"version": "0.0.1",
+	"version": "0.1.0",
     "main": "angular-sqlite.min.js",
 	"authors": [
 		"Joel Chu <joelchu@foxmail.com>"
 	],
 	"description": "Angular Sqlite service ",
+    "homepage": "https://github.com/joelchu/angular-sqlite/blob/master/README.md",
 	"keywords": [
 		"angular",
 		"angularjs",

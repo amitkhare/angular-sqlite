@@ -1,4 +1,4 @@
-/* global window , Date , console */
+/* global window , Date , console, document */
 /**
 @fileOverview
 
@@ -42,17 +42,41 @@ Might as well create an angular module and share it. Hope it works for you :)
         /////////////////
         //// Private ////
         /////////////////
-        
+                
         /**
          * connect to the database (or create a new one) 
+         * 17 MAR 2015 - change it back to promise style for the phonegap version 
          * @returns {object} database instance
          */
         var connect = function()
         {
+            var defer = $q.defer();
+            
             if (db===undefined || db===null) {
-                db = openDatabase(dbName, dbVer, dbDesc, dbSize);
+                if (dbVer==='phonegap') {
+                    document.addEventListener("deviceready", function()
+                    {
+                        /**
+                         * note here about the location
+                         * For iOS
+                         * 
+                         * 0 (default): Documents - will be visible to iTunes and backed up by iCloud
+                         * 1: Library - backed up by iCloud, NOT visible to iTunes
+                         * 2: Library/LocalDatabase - NOT visible to iTunes and NOT backed up by iCloud
+                         * set to 1 by default for the time being, might change in future release 
+                         */
+                        var db = window.sqlitePlugin.openDatabase({name: dbName + ".db" , location: 1});
+                    },false);
+                }
+                else {
+                    db = window.openDatabase(dbName, dbVer, dbDesc, dbSize);
+                }
             } 
-            return db;
+            else {
+                defer.resolve(db);
+            }
+            
+            return defer.promise;
         };
         
 
@@ -128,16 +152,19 @@ Might as well create an angular module and share it. Hope it works for you :)
         {  
             data = data || [];
             var defer = $q.defer();
-            db.transaction(function(tx)
+            connect().then(function(db)
             {
-                tx.executeSql(sql , data , function(tx , results)
+                db.transaction(function(tx)
                 {
-                    successHandler(results , defer);
-                },function(tx , error)
-                {
-                    errorHandler(error , defer);
-                });
-            }); 
+                    tx.executeSql(sql , data , function(tx , results)
+                    {
+                        successHandler(results , defer);
+                    },function(tx , error)
+                    {
+                        errorHandler(error , defer);
+                    });
+                }); 
+            });
             /**
              * if we add a second function to the transaction to catch the error function(err) then it will roll back
              * we do this when we use `set` call 
@@ -153,26 +180,28 @@ Might as well create an angular module and share it. Hope it works for you :)
         var transaction = function(sqls , datas)
         {
             var defer = $q.defer();
-            db.transaction(function(tx)
+            connect().then(function(db)
             {
-                var ctn = sqls.length, i , Ds=[];
-                for (i=0; i<ctn; ++i) {
-                    Ds.push(execute(tx , sqls[i] , datas[i]));
-                }
-                /**
-                 * we are using the stock version of the Q. 
-                 * so there is no look inside when we use $q.all 
-                 * therefore this can only tell if all success of failed
-                 */
-                $q.all(Ds).then(function()
+                db.transaction(function(tx)
                 {
-                    defer.resolve(true);
+                    var ctn = sqls.length, i , Ds=[];
+                    for (i=0; i<ctn; ++i) {
+                        Ds.push(execute(tx , sqls[i] , datas[i]));
+                    }
+                    /**
+                     * we are using the stock version of the Q. 
+                     * so there is no look inside when we use $q.all 
+                     * therefore this can only tell if all success of failed
+                     */
+                    $q.all(Ds).then(function()
+                    {
+                        defer.resolve(true);
+                    });
+                },function(err)
+                {
+                    defer.reject(err);
                 });
-            },function(err)
-            {
-                defer.reject(err);
             });
-            
             return defer.promise;
         };
         
@@ -225,9 +254,9 @@ Might as well create an angular module and share it. Hope it works for you :)
          */
         this.createTable = function(name , params, overwrite)
         {
-            overwrite = overwrite || false;
+            overwrite = overwrite || true;
             var sql = "CREATE TABLE " , fields = [];
-            if (!overwrite) {
+            if (overwrite) {
                 sql += " IF NOT EXISTS ";
             }
             sql += name + " (";
@@ -249,10 +278,13 @@ Might as well create an angular module and share it. Hope it works for you :)
         this.getTransaction = function(rollback)
         {
             var defer = $q.defer();
-            db.transaction(function(tx)
+            connect().then(function(db)
             {
-                defer.resolve(tx);
-            },rollback);
+                db.transaction(function(tx)
+                {
+                    defer.resolve(tx);
+                },rollback);
+            });
             return defer.promise;
         };
         
@@ -290,7 +322,6 @@ Might as well create an angular module and share it. Hope it works for you :)
                 sql = "INSERT INTO " + tableName + "(",
                 fields = [], 
                 data = [];
-            
             angular.forEach(params, function(value,field)
             {
                 fields.push(field);
@@ -411,8 +442,9 @@ Might as well create an angular module and share it. Hope it works for you :)
         this.parse = parse;
         this.query = query;
         this.transaction = transaction;
+        this.execute = execute;
         
-        // execute the connect 
+        // execute the connect to prepopulate the db object
         connect();
     };
                                        
@@ -424,22 +456,34 @@ Might as well create an angular module and share it. Hope it works for you :)
     app.provider('$sqlite', function()
     {
         var dbName = 'defaultDBName';
-        var dbSize = 5*1024*1024; // 5mb by default
+        var dbSize = 5*1024*1024; // 5mb by default, ignore in phonegap version
+        var dbVersions = ['1.0','phonegap']; // add new phonegap option
         var dbVer  = '1.0';
         var dbDesc = 'Angular Sqlite Database';
         var debug  = false;
+        
         /**
          * configurate some parameters for database, note, we don't want you to change the version number. 
          * Its better to leave it out because some browser support it and other don't 
-         * @param {string} name [[Description]]
-         * @param {number} size [[Description]]
-         * @param {string} desc [[Description]]
+         * 17 MAR 2015 - add version and change the order of the parameters 
+         * @param {string} name [name of your database]
+         * @param {boolean} debugMode [set debug mode on off]     
+         * @param {string} ver [version of your database for swtich different environment]
+         * @param {number} size [size of your database]
+         * @param {string} desc [text description of your database]
          */
-        this.config = function (name , size , desc , debugMode) {
+        this.config = function (name  , debugMode , ver , size , desc) 
+        {
             dbName = name || dbName;
+            debug  = debugMode || debug;
             dbSize = size || dbSize;
             dbDesc = desc || dbDesc;
-            debug  = debugMode || debug;
+            if (ver) {
+                if (dbVersions.indexOf(ver)===-1) {
+                    throw "The version your supplied " + ver + " is not support. Supported: ['1.0','phonegap']";
+                }
+                dbVer = ver;
+            }
         };
         
         /**
