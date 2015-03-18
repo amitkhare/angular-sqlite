@@ -6,9 +6,6 @@
 	"homepage": "",
 	"dependencies": {
 	},
-	"scripts": {
-    	"start": "node server.js"
-  	},
 	"devDependencies": {
 		"express":"~3.4.4",
 		"grunt": "~0.4.1",
