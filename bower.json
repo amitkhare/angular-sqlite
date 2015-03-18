@@ -13,6 +13,7 @@
         "javascript",
         "sqlite"
 	],
+    "main": "angular-sqlite.min.js",
 	"license": "MIT",
 	"ignore": [
 		"**/.*",
