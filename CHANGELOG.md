@@ -6,6 +6,16 @@ Version numbers correspond to `bower.json` version
 
 Add phonegap sqlite plugin support (using https://github.com/brodysoft/Cordova-SQLitePlugin/blob/7e62177/README.md)
 
+# 0.2.0
+
+Add more parameters to the `find` method (WHERE , ORDER BY , LIMIT)
+
+# 0.3.0
+
+Add GROUP BY and HAVING
+
+Add Unit test
+
 ## Bug Fixes
 
 ## Breaking Changes
