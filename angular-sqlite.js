@@ -7,9 +7,9 @@ Might as well create an angular module and share it. Hope it works for you :)
 
 @toc
 
-1. get some better parsing in the WHERE / ORDER / LIMIT
 
-2. add GROUP BY ? or sub query and multiple queries processing
+
+
 
 */
 
@@ -368,10 +368,18 @@ Might as well create an angular module and share it. Hope it works for you :)
             }
 
             sql += " FROM " + tableName;
-
-            if (params.where) { // string
+            // using GROUP BY then can't use WHERE
+            if (params.groupby) {
+                sql += " GROUP BY " + params.groupby;
+                // you could pass the whole sql statement,
+                // or break it down into having
+                if (params.having) {
+                    sql += " HAVING " + params.having;
+                }
+            } else if (params.where) { // string
                 sql += " WHERE " + params.where;
             }
+            // THE REST OF
             if (params.order) { // string
                 sql += " ORDER BY " + params.order;
             }
@@ -452,8 +460,23 @@ Might as well create an angular module and share it. Hope it works for you :)
         this.transaction = transaction;
         this.execute = execute;
 
+        /**
+         * getting the config options back just for testing
+         */
+        this.getOptions = function()
+        {
+            return {
+                'database name': dbName,
+                'database size': dbSize,
+                'database version': dbVer,
+                'database description': dbDesc,
+                'debug mode': debugMode
+            };
+        };
         // execute the connect to prepopulate the db object
         connect();
+
+        // return self; // we return itself, so we could test it ?
     };
 
 

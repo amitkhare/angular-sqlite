@@ -6,18 +6,19 @@
 'use strict';
 
 angular.module('myApp', [
-'ngRoute', 
+'ngRoute',
 'ngSanitize',	//additional angular modules
+'nbSqlite',
 'nbSqlite'
 ]).
-config(['$routeProvider', '$locationProvider', '$compileProvider', '$sqliteProvider',
-        function($routeProvider, $locationProvider, $compileProvider , $sqliteProvider) {
+config(['$routeProvider', '$locationProvider', '$compileProvider', '$sqliteProvider', '$sqliteProvider'
+        function($routeProvider, $locationProvider, $compileProvider , $sqliteProvider , $sqliteProvider) {
 	/**
 	setup - whitelist, appPath, html5Mode
 	@toc 1.
 	*/
 	$locationProvider.html5Mode(false);		//can't use this with github pages / if don't have access to the server
-	
+
 	// var staticPath ='/';
 	var staticPath;
 	// staticPath ='/angular-services/angularSqlite/';		//local
@@ -25,14 +26,17 @@ config(['$routeProvider', '$locationProvider', '$compileProvider', '$sqliteProvi
 	// staticPath ='/angularSqlite/';		//gh-pages
 	var appPathRoute ='/';
 	var pagesPath =staticPath+'pages/';
-	
-	
+
+
 	$routeProvider.when(appPathRoute+'home', {templateUrl: pagesPath+'home/home.html'});
 
 	$routeProvider.otherwise({redirectTo: appPathRoute+'home'});
-            
+
     // our own stuff
-            
+
     $sqliteProvider.config('differentName');
-	
+
+    // configurate our $sqlite for HTML5 environment, with debug mode turn on
+    $sqliteProvder.config('testdb' , true);
+
 }]);
