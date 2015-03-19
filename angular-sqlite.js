@@ -7,9 +7,17 @@ Might as well create an angular module and share it. Hope it works for you :)
 
 @toc
 
+when set a query in loop (idea stage)
 
+    $nbSqlite.start(); // generate a new id key
+    // do what you need like
 
+    $nbSqlite.find('someTable').then(function(data)
+    {
+        $nbSqlite.save('toSomeOtherTable' , data);
+    });
 
+    $nbSqlite.end(); // when this one it run inside one transaction, and we gain bettern speed
 
 */
 
@@ -42,6 +50,12 @@ Might as well create an angular module and share it. Hope it works for you :)
         var debugMode = debug; // useful for seeing what is happening inside
         var db; // db object holder
         var self   = this;
+        // For future feature - TODO
+        var loop = [];
+        var queriesObject = function()
+        {
+            this.executions = {};
+        };
 
         /////////////////
         //// Private ////
@@ -125,6 +139,13 @@ Might as well create an angular module and share it. Hope it works for you :)
             return p.join(',');
         };
 
+        /**
+         * internal key generator - todo
+         */
+        var internalkeyGenerator = function()
+        {
+            // later
+        };
 
         /**
          * execute a script and return a promise for $q.all to work
@@ -212,6 +233,21 @@ Might as well create an angular module and share it. Hope it works for you :)
         //////////////
         /// Public ///
         //////////////
+
+        /*************
+         *  TODO     *
+         *************/
+
+
+        this.start = function()
+        {
+            // later
+        };
+
+        this.end = function()
+        {
+            // later
+        };
 
         /***********
          ** UTILS **
@@ -484,7 +520,7 @@ Might as well create an angular module and share it. Hope it works for you :)
      * AngularJS module
      */
     var app = angular.module('nbSqlite', []);
-    app.provider('$sqlite', function()
+    app.provider('$nbSqlite', function()
     {
         var dbName = 'defaultDBName';
         var dbSize = 5*1024*1024; // 5mb by default, ignore in phonegap version
