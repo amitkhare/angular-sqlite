@@ -10,8 +10,8 @@ angular.module('myApp', [
 'ngSanitize',
 'nbSqlite'
 ]).
-config(['$routeProvider', '$locationProvider', '$sqliteProvider',
-        function($routeProvider, $locationProvider, $sqliteProvider) {
+config(['$routeProvider', '$locationProvider', '$nbSqliteProvider',
+        function($routeProvider, $locationProvider, $nbSqliteProvider) {
 	/**
 	setup - whitelist, appPath, html5Mode
 	@toc 1.
@@ -32,6 +32,6 @@ config(['$routeProvider', '$locationProvider', '$sqliteProvider',
 	$routeProvider.otherwise({redirectTo: appPathRoute+'home'});
 
     // configurate our $sqlite for HTML5 environment, with debug mode turn on
-    $sqliteProvider.config('testdb' , true);
+    $nbSqliteProvider.config('angular-sqlite-test-db' , true);
 
 }]);

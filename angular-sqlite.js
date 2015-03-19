@@ -83,11 +83,13 @@ when set a query in loop (idea stage)
                          * 2: Library/LocalDatabase - NOT visible to iTunes and NOT backed up by iCloud
                          * set to 1 by default for the time being, might change in future release
                          */
-                        var db = window.sqlitePlugin.openDatabase({name: dbName + ".db" , location: 1});
+                        db = window.sqlitePlugin.openDatabase({name: dbName + ".db" , location: 1});
+                        defer.resolve(db);
                     },false);
                 }
                 else {
                     db = window.openDatabase(dbName, dbVer, dbDesc, dbSize);
+                    defer.resolve(db);
                 }
             }
             else {
@@ -168,68 +170,6 @@ when set a query in loop (idea stage)
             return defer.promise;
         };
 
-        /**
-         * Execute a single sql
-         * @param {string} sql - sql statement
-         * @return {object} database object
-         */
-        var query = function(sql , data)
-        {
-            data = data || [];
-            var defer = $q.defer();
-            connect().then(function(db)
-            {
-                db.transaction(function(tx)
-                {
-                    tx.executeSql(sql , data , function(tx , results)
-                    {
-                        successHandler(results , defer);
-                    },function(tx , error)
-                    {
-                        errorHandler(error , defer);
-                    });
-                });
-            });
-            /**
-             * if we add a second function to the transaction to catch the error function(err) then it will roll back
-             * we do this when we use `set` call
-             */
-            return defer.promise;
-        };
-
-        /**
-         * this will execute a sequence of query with rollback
-         * @param {array} sqls  array of sql statements
-         * @param {array} datas array of data [array]
-         */
-        var transaction = function(sqls , datas)
-        {
-            var defer = $q.defer();
-            connect().then(function(db)
-            {
-                db.transaction(function(tx)
-                {
-                    var ctn = sqls.length, i , Ds=[];
-                    for (i=0; i<ctn; ++i) {
-                        Ds.push(execute(tx , sqls[i] , datas[i]));
-                    }
-                    /**
-                     * we are using the stock version of the Q.
-                     * so there is no look inside when we use $q.all
-                     * therefore this can only tell if all success of failed
-                     */
-                    $q.all(Ds).then(function()
-                    {
-                        defer.resolve(true);
-                    });
-                },function(err)
-                {
-                    defer.reject(err);
-                });
-            });
-            return defer.promise;
-        };
-
         //////////////
         /// Public ///
         //////////////
@@ -263,7 +203,7 @@ when set a query in loop (idea stage)
          * @param {string} type of call
          * @returns {mixed}
          */
-        var parse = function(results , type)
+        this.parse = function(results , type)
         {
             if (type) {
                 type = type.toUpperCase();
@@ -305,7 +245,7 @@ when set a query in loop (idea stage)
                 fields.push( key + " " + value );
             });
             sql += fields.join(',') + ")";
-            return query(sql);
+            return self.query(sql);
         };
 
         /**
@@ -337,17 +277,86 @@ when set a query in loop (idea stage)
             var defer = $q.defer();
             var sql = "SELECT * FROM sqlite_master WHERE type=?";
 
-            query(sql , ['table']).then(function(results)
+            self.query(sql , ['table']).then(function(results)
             {
+                if (debugMode) {
+                    console.log(results);
+                }
                 // filter out the built-in tables like __WebKit__ etc
-                defer.resolve(parse(results).filter(function(table)
-                {
-                    return (table.name.substr(0,2)==='__') ? false : true;
-                }));
+                defer.resolve(
+                    self.parse(results).filter(
+                        function(table)
+                        {
+                            return (table.name.substr(0,2)==='__') ? false : true;
+                        }
+                    )
+                );
             })['catch'](function(error) {
                 defer.reject(error);
             });
 
+            return defer.promise;
+        };
+
+        /**
+         * Execute a single sql
+         * @param {string} sql - sql statement
+         * @return {object} database object
+         */
+        this.query = function(sql , data)
+        {
+            data = data || [];
+            var defer = $q.defer();
+            connect().then(function(db)
+            {
+                db.transaction(function(tx)
+                {
+                    tx.executeSql(sql , data , function(tx , results)
+                    {
+                        successHandler(results , defer);
+                    },function(tx , error)
+                    {
+                        errorHandler(error , defer);
+                    });
+                });
+            });
+            /**
+             * if we add a second function to the transaction to catch the error function(err) then it will roll back
+             * we do this when we use `set` call
+             */
+            return defer.promise;
+        };
+
+        /**
+         * this will execute a sequence of query with rollback
+         * @param {array} sqls  array of sql statements
+         * @param {array} datas array of data [array]
+         */
+        this.transaction = function(sqls , datas)
+        {
+            var defer = $q.defer();
+            connect().then(function(db)
+            {
+                db.transaction(function(tx)
+                {
+                    var ctn = sqls.length, i , Ds=[];
+                    for (i=0; i<ctn; ++i) {
+                        Ds.push(execute(tx , sqls[i] , datas[i]));
+                    }
+                    /**
+                     * we are using the stock version of the Q.
+                     * so there is no look inside when we use $q.all
+                     * therefore this can only tell if all success of failed
+                     */
+                    $q.all(Ds).then(function()
+                    {
+                        defer.resolve(true);
+                    });
+                },function(err)
+                {
+                    defer.reject(err);
+                });
+            });
             return defer.promise;
         };
 
@@ -374,9 +383,11 @@ when set a query in loop (idea stage)
 
             sql += fields.join(',') + ") VALUES (" + placeholder(data.length) + ")";
 
-            query(sql , data).then(function(results)
+            self.query(sql , data).then(function(results)
             {
-                defer.resolve(parse(results , 'INSERT'));
+                defer.resolve(
+                    self.parse(results , 'INSERT')
+                );
             })['catch'](function(error)
             {
                 defer.resolve(error);
@@ -396,6 +407,7 @@ when set a query in loop (idea stage)
             var defer = $q.defer(),
                 sql = "SELECT ",
                 data = [];
+            params = params || {};
             if (params.fields) { // arrray
                 sql += params.fields.join(',');
             }
@@ -423,9 +435,11 @@ when set a query in loop (idea stage)
                 sql += " LIMIT " + params.limit;
             }
 
-            query(sql , data).then(function(result)
+            self.query(sql , data).then(function(result)
             {
-                defer.resolve(parse(result));
+                defer.resolve(
+                    self.parse(result)
+                );
             })['catch'](function(error)
             {
                 defer.reject(error);
@@ -455,9 +469,11 @@ when set a query in loop (idea stage)
             if (where) {
                 sql += " WHERE " + where;
             }
-            query(sql , data).then(function(result)
+            self.query(sql , data).then(function(result)
             {
-                defer.resolve(parse(result , 'UPDATE'));
+                defer.resolve(
+                    self.parse(result , 'UPDATE')
+                );
             })['catch'](function(error)
             {
                 defer.reject(error);
@@ -478,23 +494,17 @@ when set a query in loop (idea stage)
             if (where) {
                 sql += " WHERE " + where;
             }
-            query(sql).then(function(result)
+            self.query(sql).then(function(result)
             {
-                defer.resolve(parse(result , 'DELETE'));
+                defer.resolve(
+                    self.parse(result , 'DELETE')
+                );
             })['catch'](function(error)
             {
                 defer.reject(error);
             });
             return defer.promise;
         };
-
-        /**
-         * export them back
-         */
-        this.parse = parse;
-        this.query = query;
-        this.transaction = transaction;
-        this.execute = execute;
 
         /**
          * getting the config options back just for testing
@@ -510,7 +520,8 @@ when set a query in loop (idea stage)
             };
         };
         // execute the connect to prepopulate the db object
-        connect();
+        // change at 0.4.1 no longer create database when run - on demand
+        // connect();
 
         // return self; // we return itself, so we could test it ?
     };

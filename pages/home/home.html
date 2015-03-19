@@ -1,13 +1,74 @@
 <div ng-controller='HomeCtrl'>
-    <h1>HOME</h1>
+    <h1>PLAY WITH THE DB</h1>
 
-    <!-- TODO: place directive call here -->
-    <p>
-        dbname: {{dbName}}
-    </p>
-    
-    <ul>
-        <li ng-repeat="result in results" ng-class="{'red': result.error}">{{result.msg}}</li>
-    </ul>
-    
+
+    <!-- init -->
+    <div ng-hide="hasDb">
+        <p>
+        Click the button below will create a table with the following fields: name (TEXT), desc (TEXT), created (DATETIME)
+        </p>
+        <button class="topcoat-button--large--cta" ng-click="call('create')">Create table</button>
+
+    </div>
+
+    <!-- already have a db and table -->
+    <div ng-show="hasDb">
+        <p>
+            <h3>TABLES</h3>
+            <table border="1">
+                <tr>
+                    <th ng-repeat="(name , val) in tables[0]">
+                        {{name}}
+                    </th>
+                </tr>
+                <tr ng-repeat="table in tables">
+                    <td ng-repeat="(name, val) in table">{{val}}</td>
+                </tr>
+            </table>
+        </p>
+
+        <p>
+            <h3>Data in `test`</h3>
+            <table border="1">
+                <tr>
+                    <td>CREATED</td>
+                    <td>DESC</td>
+                    <td>NAME</td>
+                    <td>ROWID (built-in)</td>
+                </tr>
+                <tr ng-repeat="row in results">
+                    <td ng-repeat="(field,val) in row">
+                        {{val}}
+                    </td>
+                </tr>
+            </table>
+            <button class="topcoat-button--large--cta" ng-click="call('get')">RELOAD</button>
+
+            <form name="insertUser">
+                <P>
+                    Name:<br />
+                    <input type="text" class="topcoat-text-input" placeholder="name" ng-model="user.name" required>
+                </P>
+                <p>
+                    Desc: <br />
+                    <textarea class="topcoat-textarea" rows="6" cols="36" placeholder="Textarea" ng-model="user.desc" required></textarea>
+                </p>
+                <p>
+                    <button class="topcoat-button--large--cta" ng-click="call('save')">SAVE</button>
+                </p>
+            </form>
+        </p>
+
+        <p>
+            <h3>INSERT DATA</h3>
+
+        </p>
+
+        <p>
+            <button class="topcoat-button--large">Destroy table</button>
+        </p>
+
+    </div>
+
+
 </div>
