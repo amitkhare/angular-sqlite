@@ -51,7 +51,8 @@ when set a query in loop (idea stage)
         var db; // db object holder
         var self   = this;
         // For future feature - TODO
-        var loop = [];
+        var loop = {};
+
         var queriesObject = function()
         {
             this.executions = {};
@@ -147,6 +148,12 @@ when set a query in loop (idea stage)
         var internalkeyGenerator = function()
         {
             // later
+            var d = new Date(),
+                s = d.getSeconds(),
+                n = d.getMilliseconds(),
+                k = s + '-' + n;
+            loop[k] = false; // not finish
+            return k;
         };
 
         /**
