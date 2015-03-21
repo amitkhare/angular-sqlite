@@ -53,7 +53,7 @@ when set a query in loop (idea stage)
         // For future feature - TODO
         var loop = {};
         var seriesTx = false; // when we execute series of query, this will hold the tx object
-        
+
         var queriesObject = function()
         {
             this.executions = {};
@@ -181,29 +181,29 @@ when set a query in loop (idea stage)
             });
             return defer.promise;
         };
-        
+
         /**
-         * @param {hash} obj 
-         * @returns {string} return the key 
+         * @param {hash} obj
+         * @returns {string} return the key
          */
         var getKey = function(obj)
         {
             for (var key in obj)
             {
-                return key;    
+                return key;
             }
         };
-        
+
         /**
          * The trick is the last param in the series has this sinature
-         * callback(nextCallback) <-- err === null (OK) 
-         * the result is what return from the last, so its a promise then we just deal with 
-         * result.then(function(data)) <-- our signature only return one thing anyway. 
-         * of course, you must know the data structure before hand and fit into your next call. 
-         * The advantage is - we wrap this call inside an execute (see execute for more) 
-         * get task from tasks for the series method 
+         * callback(nextCallback) <-- err === null (OK)
+         * the result is what return from the last, so its a promise then we just deal with
+         * result.then(function(data)) <-- our signature only return one thing anyway.
+         * of course, you must know the data structure before hand and fit into your next call.
+         * The advantage is - we wrap this call inside an execute (see execute for more)
+         * get task from tasks for the series method
          * @param {array} tasks
-         * @returns {array} series of executable task 
+         * @returns {array} series of executable task
          */
         var getTasks = function(tasks)
         {
@@ -211,7 +211,7 @@ when set a query in loop (idea stage)
             var methods = ['create', 'find' , 'save' , 'del' , 'query'],
                 funcs = [];
             if (!angular.isArray(tasks)) {
-                throw 'Expecting series parameter is an array'; // critical throw and die   
+                throw 'Expecting series parameter is an array'; // critical throw and die
             }
             return tasks.map(function(task)
             {
@@ -225,26 +225,26 @@ when set a query in loop (idea stage)
                 if  (angular.isObject(task)) {
                     var methodName = getKey(task);
                     if (methods.indexOf(methodName)===-1) {
-                        throw 'Unexpected ' + methodName + ' method call!'; // critical     
+                        throw 'Unexpected ' + methodName + ' method call!'; // critical
                     }
-                    
-                    return function(callback) 
+
+                    return function(callback)
                     {
-                        self[methodName].apply(task[methodName]).then(callback);    
+                        self[methodName].apply(task[methodName]).then(callback);
                     };
                 }
-                // if this is an function then execute `then` next callback 
+                // if this is an function then execute `then` next callback
                 else if (angular.isFunction(task)) {
                     return function(callback) {
-                        task().then(callback);    
+                        task().then(callback);
                     };
                 }
                 else {
-                    throw 'Unable to handle ' + (typeof _call) + ' type parameter!'; // critical throw and die   
+                    throw 'Unable to handle ' + (typeof _call) + ' type parameter!'; // critical throw and die
                 }
             });
         };
-        
+
         //////////////
         /// Public ///
         //////////////
@@ -271,7 +271,7 @@ when set a query in loop (idea stage)
             switch (type)
             {
                 case 'INSERT':
-                    return (results) ? results.insertId : null; // avoid the undefined error 
+                    return (results) ? results.insertId : null; // avoid the undefined error
                 case 'UPDATE':
                 case 'DELETE':
                     return (results) ? results.rowsAffected : null;
@@ -284,7 +284,7 @@ when set a query in loop (idea stage)
                         return data;
                     }
             }
-            return null; 
+            return null;
         };
 
         /**
@@ -369,7 +369,7 @@ when set a query in loop (idea stage)
             data = data || [];
             var defer = $q.defer();
             if (seriesTx!==false) // at this point the waterfallCall will hold the tx object
-            {   
+            {
                 execute(seriesTx , sql , data , defer);
             }
             else {
@@ -393,12 +393,12 @@ when set a query in loop (idea stage)
         this.transaction = function(sqls , datas)
         {
             var defer = $q.defer();
-            
-            self.getTransaction(function(err) 
+
+            self.getTransaction(function(err)
             {
                 // just to make it clear to debug where is the problem. plus rolling the transaction back
-                defer.reject({error: err , level: 'transaction level error'});    
-            }).then(function(tx) 
+                defer.reject({error: err , level: 'transaction level error'});
+            }).then(function(tx)
             {
                 var ctn = sqls.length, i , Ds=[];
                 for (i=0; i<ctn; ++i) {
@@ -414,7 +414,7 @@ when set a query in loop (idea stage)
                     defer.resolve(true);
                 });
             })['catch'](defer.reject);
-            
+
             return defer.promise;
         };
 
@@ -430,7 +430,7 @@ when set a query in loop (idea stage)
         this.create = function(tableName, params)
         {
             var defer = $q.defer(),
-                sql = "INSERT INTO " + tableName + "(",
+                sql = "INSERT INTO " + tableName + " (",
                 fields = [],
                 data = [];
             angular.forEach(params, function(value,field)
@@ -440,9 +440,9 @@ when set a query in loop (idea stage)
             });
 
             sql += fields.join(',') + ") VALUES (" + placeholder(data.length) + ")";
-            
+
             if (seriesTx!==false) // at this point the waterfallCall will hold the tx object
-            {   
+            {
                 execute(seriesTx , sql , data , defer);
             }
             else {
@@ -499,7 +499,7 @@ when set a query in loop (idea stage)
                 sql += " LIMIT " + params.limit;
             }
             if (seriesTx!==false) // at this point the waterfallCall will hold the tx object
-            {   
+            {
                 execute(seriesTx , sql , data , defer);
             }
             else {
@@ -538,7 +538,7 @@ when set a query in loop (idea stage)
                 sql += " WHERE " + where;
             }
             if (seriesTx!==false) // at this point the waterfallCall will hold the tx object
-            {   
+            {
                 execute(seriesTx , sql , data , defer);
             }
             else {
@@ -559,7 +559,7 @@ when set a query in loop (idea stage)
          * DELETE
          * @param {string} tableName
          * @param {string} where sql statement fragment
-         * @param {array} data bind by the ? 
+         * @param {array} data bind by the ?
          * @returns {promise}
          */
         this.del = function(tableName, where , data)
@@ -571,7 +571,7 @@ when set a query in loop (idea stage)
                 sql += " WHERE " + where;
             }
             if (seriesTx!==false) // at this point the waterfallCall will hold the tx object
-            {   
+            {
                 execute(seriesTx , sql , data , defer);
             }
             else {
@@ -602,17 +602,17 @@ when set a query in loop (idea stage)
                 'debug mode': debugMode
             };
         };
-        
+
         /**
          * Async series method
          * @params {array} tasks - array of function or config object
-         * @returns {promise}  
+         * @returns {promise}
          */
         this.series = function(tasks)
         {
             var defer = $q.defer();
-            // run 
-            self.getTransaction(function(err) 
+            // run
+            self.getTransaction(function(err)
             {
                 defer.reject({errror: err , msg: 'transaction level error from series'});
             }).then(function(tx)
@@ -621,20 +621,20 @@ when set a query in loop (idea stage)
                 // no need to check, if async is not install then it died anyway
                 async.series(getTasks(tasks) , function(err , result)
                 {
-                    seriesTx = false; // unset it 
+                    seriesTx = false; // unset it
                     if (err) {
-                        defer.reject(err);   
+                        defer.reject(err);
                     }
                     else {
-                        defer.resolve(result);   
+                        defer.resolve(result);
                     }
-                });    
+                });
             });
             return defer.promise;
         };
-        
-        
-    }; // EO SqliteCls 
+
+
+    }; // EO SqliteCls
 
 
     /**
