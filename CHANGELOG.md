@@ -25,3 +25,8 @@ The order of the parameters changed in the config. Please check documentation
 ### 0.4.0
 
 The service name change from $sqlite to $nbSqlite (module name is `nbSqlite` no `$`) keep the name space neat.
+
+### 0.5.0 
+
+Add async as dependency, and add waterfall method (from Async.waterfall) 
+
