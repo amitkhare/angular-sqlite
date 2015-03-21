@@ -296,7 +296,8 @@ when set a query in loop (idea stage)
         this.createTable = function(name , params, overwrite)
         {
             overwrite = overwrite || true;
-            var sql = "CREATE TABLE " , fields = [];
+            var sql = "CREATE TABLE ",
+                fields = [];
             if (overwrite) {
                 sql += " IF NOT EXISTS ";
             }
