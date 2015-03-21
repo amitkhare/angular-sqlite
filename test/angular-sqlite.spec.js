@@ -21,6 +21,9 @@ describe('angular-sqlite test', function()
             expect(nbSqlite).not.to.equal(null);
         }));
 
+        // TODO :) 
+        
+        
     }); // end Start the service with $config
 
 }); // end angular-sqlite test

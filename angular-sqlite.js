@@ -1,4 +1,4 @@
-/* global window , Date , console, document */
+/* global window , Date , console, document , async */
 /**
 @fileOverview
 
@@ -52,7 +52,8 @@ when set a query in loop (idea stage)
         var self   = this;
         // For future feature - TODO
         var loop = {};
-
+        var seriesTx = false; // when we execute series of query, this will hold the tx object
+        
         var queriesObject = function()
         {
             this.executions = {};
@@ -89,6 +90,9 @@ when set a query in loop (idea stage)
                     },false);
                 }
                 else {
+                    /**
+                     * TODO: support sqliteCypher
+                     */
                     db = window.openDatabase(dbName, dbVer, dbDesc, dbSize);
                     defer.resolve(db);
                 }
@@ -161,12 +165,13 @@ when set a query in loop (idea stage)
          * @param {object} tx   db transaction object
          * @param {string} sql  sql statement
          * @param {array} data (optional) array of data
+         * @param {promise} _defer (optional) if we pass an outside defer, then we don't need to init it again.
          * @returns {object} promise
          */
-        var execute = function(tx , sql , data)
+        var execute = function(tx , sql , data , _defer)
         {
             data = data || [];
-            var defer = $q.defer();
+            var defer = _defer || $q.defer();
             tx.executeSql(sql , data , function(tx , results)
             {
                 successHandler(results , defer);
@@ -176,25 +181,73 @@ when set a query in loop (idea stage)
             });
             return defer.promise;
         };
-
+        
+        /**
+         * @param {hash} obj 
+         * @returns {string} return the key 
+         */
+        var getKey = function(obj)
+        {
+            for (var key in obj)
+            {
+                return key;    
+            }
+        };
+        
+        /**
+         * The trick is the last param in the series has this sinature
+         * callback(nextCallback) <-- err === null (OK) 
+         * the result is what return from the last, so its a promise then we just deal with 
+         * result.then(function(data)) <-- our signature only return one thing anyway. 
+         * of course, you must know the data structure before hand and fit into your next call. 
+         * The advantage is - we wrap this call inside an execute (see execute for more) 
+         * get task from tasks for the series method 
+         * @param {array} tasks
+         * @returns {array} series of executable task 
+         */
+        var getTasks = function(tasks)
+        {
+            // for double checking the hash notation method name if it exsit
+            var methods = ['create', 'find' , 'save' , 'del' , 'query'],
+                funcs = [];
+            if (!angular.isArray(tasks)) {
+                throw 'Expecting series parameter is an array'; // critical throw and die   
+            }
+            return tasks.map(function(task)
+            {
+                /**
+                 * when you pass as hash you need to pass like this, for example
+                 * {
+                 *      methodName: __array_of_parameters__,
+                 *      find: ['users']
+                 * }
+                 */
+                if  (angular.isObject(task)) {
+                    var methodName = getKey(task);
+                    if (methods.indexOf(methodName)===-1) {
+                        throw 'Unexpected ' + methodName + ' method call!'; // critical     
+                    }
+                    
+                    return function(callback) 
+                    {
+                        self[methodName].apply(task[methodName]).then(callback);    
+                    };
+                }
+                // if this is an function then execute `then` next callback 
+                else if (angular.isFunction(task)) {
+                    return function(callback) {
+                        task().then(callback);    
+                    };
+                }
+                else {
+                    throw 'Unable to handle ' + (typeof _call) + ' type parameter!'; // critical throw and die   
+                }
+            });
+        };
+        
         //////////////
         /// Public ///
         //////////////
-
-        /*************
-         *  TODO     *
-         *************/
-
-
-        this.start = function()
-        {
-            // later
-        };
-
-        this.end = function()
-        {
-            // later
-        };
 
         /***********
          ** UTILS **
@@ -208,7 +261,7 @@ when set a query in loop (idea stage)
          *  rowsAffected: 0}
          * @param {object} results
          * @param {string} type of call
-         * @returns {mixed}
+         * @returns {mixed} make sure it at least return a null value
          */
         this.parse = function(results , type)
         {
@@ -218,19 +271,20 @@ when set a query in loop (idea stage)
             switch (type)
             {
                 case 'INSERT':
-                    return results.insertId;
+                    return (results) ? results.insertId : null; // avoid the undefined error 
                 case 'UPDATE':
                 case 'DELETE':
-                    return results.rowsAffected;
+                    return (results) ? results.rowsAffected : null;
                 default:
-                    //console.log(results);
-                    var len = results.rows.length, i , data = [];
-                    for (i=0; i<len; ++i) {
-                        //console.log(results.rows.item(i));
-                        data.push(results.rows.item(i));
+                    if (results) {
+                        var len = results.rows.length, i , data = [];
+                        for (i=0; i<len; ++i) {
+                            data.push(results.rows.item(i));
+                        }
+                        return data;
                     }
-                    return data;
             }
+            return null; 
         };
 
         /**
@@ -314,19 +368,16 @@ when set a query in loop (idea stage)
         {
             data = data || [];
             var defer = $q.defer();
-            connect().then(function(db)
-            {
-                db.transaction(function(tx)
+            if (seriesTx!==false) // at this point the waterfallCall will hold the tx object
+            {   
+                execute(seriesTx , sql , data , defer);
+            }
+            else {
+                self.getTransaction().then(function(tx)
                 {
-                    tx.executeSql(sql , data , function(tx , results)
-                    {
-                        successHandler(results , defer);
-                    },function(tx , error)
-                    {
-                        errorHandler(error , defer);
-                    });
-                });
-            });
+                    execute(tx , sql , data , defer);
+                })['catch'](defer.reject);
+            }
             /**
              * if we add a second function to the transaction to catch the error function(err) then it will roll back
              * we do this when we use `set` call
@@ -342,28 +393,28 @@ when set a query in loop (idea stage)
         this.transaction = function(sqls , datas)
         {
             var defer = $q.defer();
-            connect().then(function(db)
+            
+            self.getTransaction(function(err) 
             {
-                db.transaction(function(tx)
+                // just to make it clear to debug where is the problem. plus rolling the transaction back
+                defer.reject({error: err , level: 'transaction level error'});    
+            }).then(function(tx) 
+            {
+                var ctn = sqls.length, i , Ds=[];
+                for (i=0; i<ctn; ++i) {
+                    Ds.push(execute(tx , sqls[i] , datas[i]));
+                }
+                /**
+                 * we are using the stock version of the Q.
+                 * so there is no look inside when we use $q.all
+                 * therefore this can only tell if all success of failed
+                 */
+                $q.all(Ds).then(function()
                 {
-                    var ctn = sqls.length, i , Ds=[];
-                    for (i=0; i<ctn; ++i) {
-                        Ds.push(execute(tx , sqls[i] , datas[i]));
-                    }
-                    /**
-                     * we are using the stock version of the Q.
-                     * so there is no look inside when we use $q.all
-                     * therefore this can only tell if all success of failed
-                     */
-                    $q.all(Ds).then(function()
-                    {
-                        defer.resolve(true);
-                    });
-                },function(err)
-                {
-                    defer.reject(err);
+                    defer.resolve(true);
                 });
-            });
+            })['catch'](defer.reject);
+            
             return defer.promise;
         };
 
@@ -389,16 +440,22 @@ when set a query in loop (idea stage)
             });
 
             sql += fields.join(',') + ") VALUES (" + placeholder(data.length) + ")";
-
-            self.query(sql , data).then(function(results)
-            {
-                defer.resolve(
-                    self.parse(results , 'INSERT')
-                );
-            })['catch'](function(error)
-            {
-                defer.resolve(error);
-            });
+            
+            if (seriesTx!==false) // at this point the waterfallCall will hold the tx object
+            {   
+                execute(seriesTx , sql , data , defer);
+            }
+            else {
+                self.query(sql , data).then(function(results)
+                {
+                    defer.resolve(
+                        self.parse(results , 'INSERT')
+                    );
+                })['catch'](function(error)
+                {
+                    defer.resolve(error);
+                });
+            }
 
             return defer.promise;
         };
@@ -441,17 +498,21 @@ when set a query in loop (idea stage)
             if (params.limit) { // string
                 sql += " LIMIT " + params.limit;
             }
-
-            self.query(sql , data).then(function(result)
-            {
-                defer.resolve(
-                    self.parse(result)
-                );
-            })['catch'](function(error)
-            {
-                defer.reject(error);
-            });
-
+            if (seriesTx!==false) // at this point the waterfallCall will hold the tx object
+            {   
+                execute(seriesTx , sql , data , defer);
+            }
+            else {
+                self.query(sql , data).then(function(result)
+                {
+                    defer.resolve(
+                        self.parse(result)
+                    );
+                })['catch'](function(error)
+                {
+                    defer.reject(error);
+                });
+            }
             return defer.promise;
         };
 
@@ -476,16 +537,21 @@ when set a query in loop (idea stage)
             if (where) {
                 sql += " WHERE " + where;
             }
-            self.query(sql , data).then(function(result)
-            {
-                defer.resolve(
-                    self.parse(result , 'UPDATE')
-                );
-            })['catch'](function(error)
-            {
-                defer.reject(error);
-            });
-
+            if (seriesTx!==false) // at this point the waterfallCall will hold the tx object
+            {   
+                execute(seriesTx , sql , data , defer);
+            }
+            else {
+                self.query(sql , data).then(function(result)
+                {
+                    defer.resolve(
+                        self.parse(result , 'UPDATE')
+                    );
+                })['catch'](function(error)
+                {
+                    defer.reject(error);
+                });
+            }
             return defer.promise;
         };
 
@@ -493,28 +559,38 @@ when set a query in loop (idea stage)
          * DELETE
          * @param {string} tableName
          * @param {string} where sql statement fragment
+         * @param {array} data bind by the ? 
+         * @returns {promise}
          */
-        this.del = function(tableName, where)
+        this.del = function(tableName, where , data)
         {
+            data = data || [];
             var defer = $q.defer(),
                 sql = "DELETE FROM " + tableName;
             if (where) {
                 sql += " WHERE " + where;
             }
-            self.query(sql).then(function(result)
-            {
-                defer.resolve(
-                    self.parse(result , 'DELETE')
-                );
-            })['catch'](function(error)
-            {
-                defer.reject(error);
-            });
+            if (seriesTx!==false) // at this point the waterfallCall will hold the tx object
+            {   
+                execute(seriesTx , sql , data , defer);
+            }
+            else {
+                self.query(sql , data).then(function(result)
+                {
+                    defer.resolve(
+                        self.parse(result , 'DELETE')
+                    );
+                })['catch'](function(error)
+                {
+                    defer.reject(error);
+                });
+            }
             return defer.promise;
         };
 
         /**
          * getting the config options back just for testing
+         * @returns {hash}
          */
         this.getOptions = function()
         {
@@ -526,12 +602,39 @@ when set a query in loop (idea stage)
                 'debug mode': debugMode
             };
         };
-        // execute the connect to prepopulate the db object
-        // change at 0.4.1 no longer create database when run - on demand
-        // connect();
-
-        // return self; // we return itself, so we could test it ?
-    };
+        
+        /**
+         * Async series method
+         * @params {array} tasks - array of function or config object
+         * @returns {promise}  
+         */
+        this.series = function(tasks)
+        {
+            var defer = $q.defer();
+            // run 
+            self.getTransaction(function(err) 
+            {
+                defer.reject({errror: err , msg: 'transaction level error from series'});
+            }).then(function(tx)
+            {
+                seriesTx = tx;
+                // no need to check, if async is not install then it died anyway
+                async.series(getTasks(tasks) , function(err , result)
+                {
+                    seriesTx = false; // unset it 
+                    if (err) {
+                        defer.reject(err);   
+                    }
+                    else {
+                        defer.resolve(result);   
+                    }
+                });    
+            });
+            return defer.promise;
+        };
+        
+        
+    }; // EO SqliteCls 
 
 
     /**
