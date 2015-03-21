@@ -5,7 +5,7 @@ AngularJS service to access the HTML5 sqlite API or Phonegap sqlite plugin.
 ## Dependencies
 - required:
 	angularjs (1.3)
-
+    async (latest) for the series call 
 
 ## Install
 
