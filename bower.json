@@ -1,12 +1,12 @@
 {
 	"name": "angular-sqlite",
-	"version": "0.6.0",
+	"version": "0.6.1",
 	"authors": [
 		"Joel Chu <joelchu@foxmail.com>"
 	],
     "repository": "git@github.com:joelchu/angular-sqlite.git",
     "homepage": "https://github.com/joelchu/angular-sqlite/blob/master/README.md",
-	"description": "Angular plus sqlite for mobile, desktop or whatever",
+	"description": "Angular plus sqlite for mobile (phonegap) or desktop",
 	"keywords": [
         "Angular",
         "AngularJS",
@@ -23,13 +23,13 @@
 		"tests"
 	],
 	"dependencies": {
-		"angular":"~1.3.0",
+		"angular":"latest",
         "async": "latest"
 	},
 	"devDependencies": {
-        "angular-mocks": "~1.3.0",
-        "angular-sanitize":"~1.3.0",
-        "angular-route":"~1.3.0",
+        "angular-mocks": "latest",
+        "angular-sanitize":"latest",
+        "angular-route":"latest",
         "topcoat": "git@github.com:topcoat/topcoat.git"
 	}
 }
