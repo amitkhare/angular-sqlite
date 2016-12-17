@@ -12,10 +12,8 @@ AngularJS service to access the HTML5 sqlite API or Phonegap sqlite plugin.
 1. download the files
 
     1. Bower
-        This module is not register with bower but you can install it directly from github
-
-            bower install git@github.com:joelchu/angular-sqlite.git
-
+        This module is register with bower you can install it with
+            bower install ng-sqlite
 2. include the files in your app
 
     1. `<script src="bower_components/angular-sqlite/angular-sqlite.min.js">`
